@@ -8,7 +8,7 @@ data-base: [TableQA](https://github.com/ZhuiyiTechnology/TableQA)
 
 基础修改：
 * 添加一种bert_type_abb：chinese_L-12_H-768_A-12
-* 下载谷歌chinese-base用中文数据集跑出pytorch-bin
+* 下载谷歌[chinese-base](https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip)跑出pytorch-bin
 * 修改load_data里，jsonl->json，先不用分词，并且修改数据打开方式，否则文件读取gbk错误（这里表名是name字段不是id字段，但是list名要设成id，为了之后训练）
 * 修改model里的get_bert（注意cH没有do_lowercase属性）
 * 由于我们没有分词，所以要将train里的question_tok字段换成每个词（get_fields_1里）；sql和query一样；sql_i要注意中文数据里的agg里面还分了一个字段，要么在这改要么在get_g里改；还有这里相比英文少了一个wvi_corenlp(这个是annotation_ws生成的，代表WV的起始和结束位置，我们自己写一个函数找到他，叫ch_corenlp，我们不修改原数据，只在从硬盘读入的时候进行查找（待优化）)（在查找的时候，我们要注意比如10会写成十这样的，还有词会分开来的，非常多情况！！重点必须改进）（2020/11/28改进：直接忽略查不到WV的记录）
