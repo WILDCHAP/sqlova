@@ -855,7 +855,7 @@ if __name__ == '__main__':
         nlu1 = "请问股票代码为831155的英文名称是什么？"
         path_db = 'data_and_model'
         db_name = 'sqlova_ch'
-        data_table = load_jsonl('./data_and_model/com_message.tables.json')
+        data_table = load_jsonl('data_and_model/com_message/com_message.tables.json')
         table_name = 'Table_com_message'
         n_Q = 100000 if args.infer_loop else 1
         for i in range(n_Q):

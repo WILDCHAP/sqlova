@@ -90,3 +90,7 @@ test函数的更改类似train函数，但是要注意（大概utils_wikisql-lin
 写在无sql语句的情况下做infer；将问题代入train/dev/test.json中；查看服务器train函数为什么用了40gb内存；试着用colab跑
 1. 完成了未知答案的predict(只修改了predict)；要注意的是，已知答案我们还可以主动排除wv、sc、and/or错误，但这个我们无法排除，所以问问题的时候就不能问这种问题
 2. 发现了一个巨大问题：wikisql_models.py-line28初始化max_wn=4，这样同时指定了每张表最多四列，如果由张表只有3列就会报错，除了服务器，其他地方都修改成了3
+
+### 2020/12/06：
+将financial_statements的单独问题合并到train/dev中，修改了test的格式(只剩question和tableid)；
+测试了financial_statements的单独问题
