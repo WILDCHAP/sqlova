@@ -179,7 +179,7 @@ def predict_nosql(nlu_list,
                                                                                             beam_size=beam_size)
         except:
             # 出现错误改wikisql_models.py-line28初始化where-num数量
-            print("error table header len:", len(hds1))
+            print("error table header len:", len(hds1), "table name:", table_name)
             continue
 
         # 切分出where-col/where-op/where-val

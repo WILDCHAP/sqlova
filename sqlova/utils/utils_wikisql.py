@@ -770,9 +770,16 @@ def get_bert_output(model_bert, tokenizer, nlu_t, hds, max_seq_length):
             input_mask1.append(0)
             segment_ids1.append(0)
 
-        assert len(input_ids1) == max_seq_length
-        assert len(input_mask1) == max_seq_length
-        assert len(segment_ids1) == max_seq_length
+        # assert len(input_ids1) == max_seq_length
+        # assert len(input_mask1) == max_seq_length
+        # assert len(segment_ids1) == max_seq_length
+        try:
+            assert len(input_ids1) == max_seq_length
+            assert len(input_mask1) == max_seq_length
+            assert len(segment_ids1) == max_seq_length
+        except:
+            print("Too long problems + headers, ignored\nquestion:", str(nlu_t1))
+            continue
 
         input_ids.append(input_ids1)
         tokens.append(tokens1)
