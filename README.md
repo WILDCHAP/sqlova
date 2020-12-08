@@ -74,7 +74,7 @@ test函数的更改类似train函数，但是要注意（大概utils_wikisql-lin
 10. 增加了一个agrs：have_sql，默认为False，如果为False就说明开始不给答案（类似TableQA的test），True的话就会给出准确率，也会给出答案
 更新了：
 服务器的train.py、wikisql_models.py、utils.py、utils_wikisql.py、dbengine.py
-晚上跑表数据，结果惨不忍睹，一行一行查看后，决定修改acc评判标准，由结果来评判
+晚上跑表数据，结果惨不忍睹，一行一行查看后，将acc评判标准修改为sql+结果来评判
 
 ### 2020/12/04：
 将财报表拆分成三个小表，并将格式改为TableQA的格式；观察服务器内存情况（发现内存溢出）
