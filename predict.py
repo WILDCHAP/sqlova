@@ -131,7 +131,7 @@ def predict(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             if iB != 0:
                 # print acc
                 print("=========================================================")
-                print("acc：", right_ans, " / ", iB * args.bS, " ==> ", right_ans / (iB * args.bS))
+                print("acc：", right_ans, " / ", (iB+1) * args.bS, " ==> ", right_ans / ((iB+1) * args.bS))
                 print("=========================================================")
     return results, right_ans
 
