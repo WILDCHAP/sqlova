@@ -99,4 +99,4 @@ test函数的更改类似train函数，但是要注意（大概utils_wikisql-lin
 在原6次迭代基础上跑两次迭代，TableQA+fin基础上训练，最终准确率86%，继续跑迭代  
 修改了predict里每20个bs输出的语句，（iB + 1） * args.bS  
 用上面训练出来的参数预测单个fin，dev准确率：1613  /  1616  
-修改了have_sql参数问题，以后不加--have_sql证明为False，加则为True
+修改了have_sql参数问题，以后不加--have_sql证明为False，加则为True[（原因）](https://blog.csdn.net/WILDCHAP_/article/details/110878484)
