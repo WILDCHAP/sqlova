@@ -224,7 +224,7 @@ parser.add_argument("--split", required=True, help='prefix of jsonl and db files
 # 结果文件夹
 parser.add_argument("--result_path", required=True, help='directory in which to place results')
 # 是否给出sql
-parser.add_argument("--have_sql", required=True, type=bool, help='hava sql?')
+parser.add_argument("--have_sql", action='store_true', help='hava sql?')
 # 除此之外，还要加上max_seq_length 280, bS 16
 
 args = construct_hyper_param(parser)
