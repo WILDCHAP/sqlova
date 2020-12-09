@@ -195,7 +195,7 @@ def predict_nosql(nlu_list,
         # pr_sql_q = [pr_sql_q1]  # 将生成的sql语句放到list里
 
         '''下面执行SQL语句、写入结果也一条一条执行'''
-        for bs_index in arange(args.bS):
+        for bs_index in arange(len(nlu)):
             try:
                 pr_ans, _ = engine.execute_return_query(tb[bs_index]['id'], pr_sc[bs_index], pr_sa[bs_index], pr_sql_i[bs_index]['conds'])
             except:
@@ -212,8 +212,8 @@ def predict_nosql(nlu_list,
 
             results.append(results1)
 
-        '''每20次bS打印一次，向文件中写一次'''
-        if b % 20 == 0:
+        '''每10次bS打印一次，向文件中写一次'''
+        if b % 10 == 0:
             print("now position:", (b+1) * args.bS)
             save_for_evaluation(path_save_for_evaluation, results, args.split)
             results = []
@@ -338,5 +338,5 @@ else:
     '''由于没有标注，所以只输出成果就行'''
     print("ans in dir: " + path_save_for_evaluation)
 
-# Save results
+# Save results，这里虽然每bS写入了，但存在剩下的情况
 save_for_evaluation(path_save_for_evaluation, results, args.split)
