@@ -125,7 +125,7 @@ def predict(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             '''得出准确率(这里是先看agg, conds，再比较sel和ans)'''
             if compare(sql_i[b], pr_sql_i[b], ans, pr_ans) == True:
                 right_ans += 1
-
+        # 每20次bS输出、写入一次
         if iB % 20 == 0:
             print("now position:", iB * args.bS)
             if iB != 0:
@@ -133,6 +133,10 @@ def predict(data_loader, data_table, model, model_bert, bert_config, tokenizer,
                 print("=========================================================")
                 print("acc：", right_ans, " / ", (iB+1) * args.bS, " ==> ", right_ans / ((iB+1) * args.bS))
                 print("=========================================================")
+                # write results
+                save_for_evaluation(path_save_for_evaluation, results, args.split)
+                results = []
+
     return results, right_ans
 
 '''predict_nosql参数说明'''
