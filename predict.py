@@ -152,18 +152,25 @@ def predict_nosql(nlu_list,
 
     results = []
 
-    # 一条一条查(也可以修改接口换成dev_loader的bS处理，但是会影响很多文件)
+    # 每次查bS个数据
     for b, (nlu, table_name) in enumerate(zip(nlu_list, table_name_list)):
-        nlu_t1 = tokenize_corenlp_direct_version(client, nlu)   # 利用stanford中文分词
-        nlu_t = [nlu_t1]  # 把分词之后的数据也放到数组里
-        # 循环找出该问题要找的那张表
-        for temple_table in data_table:
-            if temple_table['name'] == table_name:
-                tb1 = temple_table
-                break
-        hds1 = tb1['header']    # 获取表头
-        tb = [tb1]
-        hds = [hds1]
+        '''先将bS个一个一个分词'''
+        nlu_t = []
+        for nlu_tok in nlu:
+            nlu_t1 = tokenize_corenlp_direct_version(client, nlu_tok)   # 利用stanford中文分词
+            nlu_t.append(nlu_t1)  # 把分词之后的数据也放到数组里
+        '''循环分别找出该问题要找的那张表'''
+        tb = []
+        hds = []
+        for table_name_temp in table_name:
+            for temple_table in data_table:
+                if temple_table['name'] == table_name_temp:
+                    tb1 = temple_table
+                    hds1 = tb1['header']    # 获取表头
+                    tb.append(tb1)          # 将找到的表加进list中
+                    hds.append(hds1)        # 将找到的表头加进list中
+                    break
+
         '''开始预测'''
         # 获取bert-output
         wemb_n, wemb_h, l_n, l_hpu, l_hs, \
@@ -175,7 +182,7 @@ def predict_nosql(nlu_list,
             prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
                                                                                             l_hs, engine, tb,
                                                                                             nlu_t, nlu_tt,
-                                                                                            tt_to_t_idx, [nlu],
+                                                                                            tt_to_t_idx, nlu,
                                                                                             beam_size=beam_size)
         except:
             # 出现错误改wikisql_models.py-line28初始化where-num数量
@@ -184,29 +191,32 @@ def predict_nosql(nlu_list,
 
         # 切分出where-col/where-op/where-val
         pr_wc, pr_wo, pr_wv, pr_sql_i = sort_and_generate_pr_w(pr_sql_i)
-        pr_sql_q1 = generate_sql_q(pr_sql_i, [tb1])  # 根据上面的conds生成sql语句
-        pr_sql_q = [pr_sql_q1]  # 将生成的sql语句放到list里
+        pr_sql_q = generate_sql_q(pr_sql_i, tb)  # 根据上面的conds生成sql语句
+        # pr_sql_q = [pr_sql_q1]  # 将生成的sql语句放到list里
 
-        '''下面执行SQL语句'''
-        try:
-            pr_ans, _ = engine.execute_return_query(tb[0]['id'], pr_sc[0], pr_sa[0], pr_sql_i[0]['conds'])
-        except:
-            pr_ans = ['Answer not found.']
-            pr_sql_q = ['Answer not found.']
+        '''下面执行SQL语句、写入结果也一条一条执行'''
+        for bs_index in arange(args.bS):
+            try:
+                pr_ans, _ = engine.execute_return_query(tb[bs_index]['id'], pr_sc[bs_index], pr_sa[bs_index], pr_sql_i[bs_index]['conds'])
+            except:
+                pr_ans = ['Answer not found.']
+                pr_sql_q = ['Answer not found.']
 
-        '''写结果'''
-        results1 = {}
-        results1["query"] = pr_sql_i[0]
-        results1["table_id"] = tb[0]["id"]
-        results1["nlu"] = nlu_list[b]
-        results1["sql"] = pr_sql_q1
-        results1["result"] = pr_ans
+            '''写结果'''
+            results1 = {}
+            results1["query"] = pr_sql_i[bs_index]
+            results1["table_id"] = tb[bs_index]["id"]
+            results1["nlu"] = nlu[bs_index]
+            results1["sql"] = pr_sql_q[bs_index]
+            results1["result"] = pr_ans
 
-        results.append(results1)
+            results.append(results1)
 
-        '''每1000条打印一次'''
-        if b % 1000 == 0:
-            print("now position:", b)
+        '''每20次bS打印一次，向文件中写一次'''
+        if b % 20 == 0:
+            print("now position:", (b+1) * args.bS)
+            save_for_evaluation(path_save_for_evaluation, results, args.split)
+            results = []
 
     return results
 
@@ -277,14 +287,36 @@ if args.have_sql == True:
 else:
     nlu_list = []           # 问题list
     table_name_list = []    # 每个问题对应的表名list
+    index = 0
+    temp_nlu_list = []
+    temp_table_name_list = []
 
     '''从<split>.json中将问题和表名提取出来'''
     path_question = os.path.join(args.data_path, args.split + '.json')  # 问题文件路径名
     question_list = load_jsonl(path_question)       # 利用utils里load_jsonl方法，的将问题文件加载出来先
     for question in question_list:
-        nlu_list.append(question['question'])
-        table_name_list.append('Table_' + question['table_id'])     # 注意table_name要加‘Table_'
+        if index % args.bS != 0 or index == 0:      # 只要它是属于这个bS里的，就加入temp_list继续
+            temp_nlu_list.append(question['question'])
+            temp_table_name_list.append('Table_' + question['table_id'])
+            index += 1
+            continue
+        else:                       # 如果到了头就加入总数组
+            nlu_list.append(temp_nlu_list)
+            table_name_list.append(temp_table_name_list)
+            temp_nlu_list = []      # 记得重新设定数组
+            temp_table_name_list = []
+            temp_nlu_list.append(question['question'])
+            temp_table_name_list.append('Table_' + question['table_id'])
+            index += 1
+    # 如果temp数组里还有内容（不满bS个数），还是加入总列表中
+    nlu_list.append(temp_nlu_list)
+    table_name_list.append(temp_table_name_list)
+
     assert len(nlu_list) == len(table_name_list)  # 安全起见判断一下两个list长度是否一致
+
+
+    '''2020/12/08修改：将每bS个打包成一个二维list'''
+
 
     # '''其他参数设定'''
     path_table = os.path.join(args.data_path, args.split + '.tables.json')

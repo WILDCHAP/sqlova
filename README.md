@@ -100,3 +100,8 @@ test函数的更改类似train函数，但是要注意（大概utils_wikisql-lin
 修改了predict里每20个bs输出的语句，（iB + 1） * args.bS  
 用上面训练出来的参数预测单个fin，dev准确率：1613  /  1616  
 修改了have_sql参数问题，以后不加--have_sql证明为False，加则为True[（原因）](https://blog.csdn.net/WILDCHAP_/article/details/110878484)
+
+### 2020/12/09：
+跑出来的6+2+2，准确率87.4%  
+继续完成昨天的bS做无sql的predict代码完成  
+修改utils_wikisql.py-line1764将一次性读取w换为附加读取'a+'  

@@ -1761,7 +1761,7 @@ def generate_sql_i(pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wv_str, nlu):
 
 def save_for_evaluation(path_save, results, dset_name, ):
     path_save_file = os.path.join(path_save, f'results_{dset_name}.json')
-    with open(path_save_file, 'w', encoding='utf-8') as f:
+    with open(path_save_file, 'a+', encoding='utf-8') as f:
         for i, r1 in enumerate(results):
             json_str = json.dumps(r1, ensure_ascii=False, default=json_default_type_checker)
             json_str += '\n'
