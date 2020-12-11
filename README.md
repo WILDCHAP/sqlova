@@ -105,3 +105,10 @@ test函数的更改类似train函数，但是要注意（大概utils_wikisql-lin
 跑出来的6+2+2，准确率87.4%  
 继续完成昨天的bS做无sql的predict代码完成  
 修改utils_wikisql.py-line1764将一次性读取w换为附加读取'a+'  
+**发现问题：**  
+用stanza分词的和没用的结果差别巨大，于是用train的infer看一下是否只是predict_nosql的问题，发现还是查错，证明是stanza分词的问题  
+**解决方法：**  
+先尝试修改predict里的predict_nosql方法（参照predict方法修改），然后再修改train里面的infer方法  
+
+### 2020/12/11:
+修改好了predict里的predict_nosql方法，达到了和predict方法一样的效果，再修改train的infer方法

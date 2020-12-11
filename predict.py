@@ -125,9 +125,9 @@ def predict(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             '''得出准确率(这里是先看agg, conds，再比较sel和ans)'''
             if compare(sql_i[b], pr_sql_i[b], ans, pr_ans) == True:
                 right_ans += 1
-        # 每20次bS输出、写入一次
-        if iB % 20 == 0:
-            print("now position:", iB * args.bS)
+        # 每10次bS输出、写入一次
+        if iB % 10 == 0:
+            print("now position:", (iB+1) * args.bS)
             if iB != 0:
                 # print acc
                 print("=========================================================")
@@ -161,8 +161,8 @@ def predict_nosql(nlu_list,
         '''先将bS个一个一个分词'''
         nlu_t = []
         for nlu_tok in nlu:
-            nlu_t1 = tokenize_corenlp_direct_version(client, nlu_tok)   # 利用stanford中文分词
-            nlu_t.append(nlu_t1)  # 把分词之后的数据也放到数组里
+            # nlu_t1 = tokenize_corenlp_direct_version(client, nlu_tok)   # 利用stanford中文分词
+            nlu_t.append(list(nlu_tok))  # 把分词之后的数据也放到数组里
         '''循环分别找出该问题要找的那张表'''
         tb = []
         hds = []
@@ -182,12 +182,22 @@ def predict_nosql(nlu_list,
             = get_wemb_bert(bert_config, model_bert, tokenizer, nlu_t, hds, max_seq_length,
                             num_out_layers_n=num_target_layers, num_out_layers_h=num_target_layers)
         try:
-            # 获取sqlova-output
-            prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
-                                                                                            l_hs, engine, tb,
-                                                                                            nlu_t, nlu_tt,
-                                                                                            tt_to_t_idx, nlu,
-                                                                                            beam_size=beam_size)
+            # # 获取sqlova-output
+            # prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
+            #                                                                                 l_hs, engine, tb,
+            #                                                                                 nlu_t, nlu_tt,
+            #                                                                                 tt_to_t_idx, nlu,
+            #                                                                                 beam_size=beam_size)
+            '''2020/12/11修改：将其修改成modelh函数调用'''
+            # 获取sqlova得出的6大重要部分参数 pr_sc pr_sa
+            s_sc, s_sa, s_wn, s_wc, s_wo, s_wv = model(wemb_n, l_n, wemb_h, l_hpu, l_hs)
+            # 将权重参数变成值
+            pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wvi = pred_sw_se(s_sc, s_sa, s_wn, s_wc, s_wo, s_wv, )
+            # 根据值得出where-value(这里是分词版，一个一个切分)
+            pr_wv_str, pr_wv_str_wp = convert_pr_wvi_to_string(pr_wvi, nlu_t, nlu_tt, tt_to_t_idx, nlu)
+            # 最后在将值整合成conds(pre版本)
+            '''2020/12/03修改：将agg和sel变为列表形式（generate_sql_i函数内修改）'''
+            pr_sql_i = generate_sql_i(pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wv_str, nlu)
         except:
             # 出现错误改wikisql_models.py-line28初始化where-num数量
             print("error table header len:", len(hds1), "table name:", table_name)

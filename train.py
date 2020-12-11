@@ -658,8 +658,10 @@ def infer(nlu1,
     ==client:stanford的corenlp代理类==
     ==nlu1:刚刚定义的问题列表==
     2020/12/02修改：修改infer中文分词问题
+    2020/12/11修改：取消使用stanza中文分词，直接完全分词
     '''
-    nlu_t1 = tokenize_corenlp_direct_version(client, nlu1)
+    # nlu_t1 = tokenize_corenlp_direct_version(client, nlu1)
+    nlu_t1 = list(nlu1)
     nlu_t = [nlu_t1]    # 把分词之后的数据也放到数组里
 
     #tb1 = data_table[0]
@@ -681,11 +683,21 @@ def infer(nlu1,
         = get_wemb_bert(bert_config, model_bert, tokenizer, nlu_t, hds, max_seq_length,
                         num_out_layers_n=num_target_layers, num_out_layers_h=num_target_layers)
     # 获取sqlova-output
-    prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
-                                                                                    l_hs, engine, tb,
-                                                                                    nlu_t, nlu_tt,
-                                                                                    tt_to_t_idx, nlu,
-                                                                                    beam_size=beam_size)
+    '''2020/12/11修改：换用model预测'''
+    # prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
+    #                                                                                 l_hs, engine, tb,
+    #                                                                                 nlu_t, nlu_tt,
+    #                                                                                 tt_to_t_idx, nlu,
+    #                                                                                 beam_size=beam_size)
+    # 获取sqlova得出的6大重要部分参数 pr_sc pr_sa
+    s_sc, s_sa, s_wn, s_wc, s_wo, s_wv = model(wemb_n, l_n, wemb_h, l_hpu, l_hs)
+    # 将权重参数变成值
+    pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wvi = pred_sw_se(s_sc, s_sa, s_wn, s_wc, s_wo, s_wv, )
+    # 根据值得出where-value(这里是分词版，一个一个切分)
+    pr_wv_str, pr_wv_str_wp = convert_pr_wvi_to_string(pr_wvi, nlu_t, nlu_tt, tt_to_t_idx, nlu)
+    # 最后在将值整合成conds(pre版本)
+    '''2020/12/03修改：将agg和sel变为列表形式（generate_sql_i函数内修改）'''
+    pr_sql_i = generate_sql_i(pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wv_str, nlu)
 
     # 切分出where-col/where-op/where-val
     pr_wc, pr_wo, pr_wv, pr_sql_i = sort_and_generate_pr_w(pr_sql_i)
@@ -838,9 +850,9 @@ if __name__ == '__main__':
         # from stanza.nlp.corenlp import CoreNLPClient
         # client = CoreNLPClient(server='http://localhost:9000', default_annotators='ssplit,tokenize'.split(','))
 
-        import corenlp
-
-        client = corenlp.CoreNLPClient(annotators='ssplit,tokenize'.split(','))
+        # import corenlp
+        #
+        # client = corenlp.CoreNLPClient(annotators='ssplit,tokenize'.split(','))
 
         '''2020/12/02修改：infer分词函数'''
         # from nltk.tokenize.stanford import CoreNLPTokenizer
@@ -852,11 +864,11 @@ if __name__ == '__main__':
         # db_name = 'dev'
         # data_table = load_jsonl('./data_and_model/dev.tables.json')
         # table_name = 'Table_69cc8c0c334311e98692542696d6e445'
-        nlu1 = "请问股票代码为831155的英文名称是什么？"
+        nlu1 = "你知不知道股票代码等于002043且时间等于现金流量表的数据值是？"
         path_db = 'data_and_model'
-        db_name = 'sqlova_ch'
-        data_table = load_jsonl('data_and_model/com_message/com_message.tables.json')
-        table_name = 'Table_com_message'
+        db_name = 'test'
+        data_table = load_jsonl('data_and_model/test.tables.json')
+        table_name = 'Table_financial_statements'
         n_Q = 100000 if args.infer_loop else 1
         for i in range(n_Q):
             if n_Q > 1:
