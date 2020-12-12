@@ -112,3 +112,9 @@ test函数的更改类似train函数，但是要注意（大概utils_wikisql-lin
 
 ### 2020/12/11:
 修改好了predict里的predict_nosql方法，达到了和predict方法一样的效果，再修改train的infer方法
+
+### 2020/12/12：
+创建了excel数据库，整理了表名，问题等信息  
+在加载real型问题时出错：找不到where-value起始位置  
+**解决方法：**  
+修改annotate_ch_corenlp.py，在find时判断：如果是对real类型列进行操作就将它转换成str进行find  

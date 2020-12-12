@@ -10,6 +10,9 @@ def get_star_and_end(t):
     for inx in range(wv_n):
         wv_temp = []
         wv_val = t['sql']['conds'][inx][2] #获取第inx个value
+        '''2020/12/12修改：如果是对real类型列进行操作就将它转换成str进行find'''
+        if not isinstance(wv_val, str):
+            wv_val = str(wv_val)
         beg = t['question'].find(wv_val)
         end = beg + len(wv_val) - 1
         if(beg == -1 or end == -1):
