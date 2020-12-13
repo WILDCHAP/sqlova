@@ -120,11 +120,13 @@ def predict(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             except:
                 pr_ans = ['Answer not found.']
             results1["result"] = pr_ans
-            results.append(results1)
+            #results.append(results1)
 
             '''得出准确率(这里是先看agg, conds，再比较sel和ans)'''
             if compare(sql_i[b], pr_sql_i[b], ans, pr_ans) == True:
                 right_ans += 1
+            else:
+                results.append(results1)
         # 每10次bS输出、写入一次
         if iB % 10 == 0:
             print("now position:", (iB+1) * args.bS)

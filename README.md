@@ -118,3 +118,10 @@ test函数的更改类似train函数，但是要注意（大概utils_wikisql-lin
 在加载real型问题时出错：找不到where-value起始位置  
 **解决方法：**  
 修改annotate_ch_corenlp.py，在find时判断：如果是对real类型列进行操作就将它转换成str进行find  
+
+### 2020/12/13：
+创建了一个修改model专用的版本，按照train.py的执行顺序一个一个步骤修改  
+主要是三个问题：  
+select-column个数，where-operate，where-value，先暂时修改前面两个问题  
+where-value不太靠谱的思路：在获取beg & end时，如果没找到(-1)时，就搜索它的同义词，直到搜索到为止，搜到了就将该同义词替换句子中的同义词，再获取它的beg & end（可是train是知道where value可以这么做，我们在做infer的时候是不知道的）  
+完全修改之后才会上传上来...
