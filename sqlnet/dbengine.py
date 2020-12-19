@@ -24,6 +24,7 @@ class DBEngine:
         # z1 = 'sqlite:///{}'.format(fdb)+'?check_same_thread=False'
         # print(z1)
         self.db = records.Database('sqlite:///{}'.format(fdb))
+        self.db = self.db.get_connection()
         # #self.db = records.Database('sqlite:///?check_same_thread=False')
         # self.db = records.Database(z1)
         #self.fdb = fdb

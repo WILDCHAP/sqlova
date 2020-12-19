@@ -114,7 +114,7 @@ def predict(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             '''2020/12/03修改：连接数据库进行查询操作'''
             '''2020/12/03晚上修改：再查出真实值，对比得出准确率'''
             try:
-
+                ans = ['Answer not found.']
                 pr_ans, _ = engine.execute_return_query(tb[b]['id'], pr_sc[b], pr_sa[b], pr_sql_i[b]['conds'])
                 ans, _ = engine.execute_return_query(tb[b]['id'], g_sc[b], g_sa[b], sql_i[b]['conds'])
             except:
