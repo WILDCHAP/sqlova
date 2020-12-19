@@ -45,6 +45,7 @@ data-base: [TableQA](https://github.com/ZhuiyiTechnology/TableQA)
 	- `python3 train.py --model_file data_and_model/model_best.pt --bert_model_file data_and_model/model_bert_best.pt --bert_path data_and_model --data_path data_and_model --split test --result_path result --max_seq_length 280 --bS 16`
 	- split表示的是你要预测的.db/.json/.tables.json文件的文件名
 	- have_sql属性表示你是有标记(得出准确率和结果)还是无标记(仅得出结果)
+- 更多参数设置及含义见代码前部注释
 ------------
 ## 更新日志：
 ### **\*\*\*\*\*\*\*\*\*\* 2020/11/28 \*\*\*\*\*\*\*\*\*\***
